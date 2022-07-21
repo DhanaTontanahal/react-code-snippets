@@ -1,0 +1,82 @@
+import { useReducer, useState } from "react";
+import "./styles.css";
+
+const ACTIONS = {
+  ADD_TODO: "add_todo",
+  TOGGLE_TODO: "toggle_todo",
+  TOGGLE_DELETE: "toggle_delete"
+};
+
+const newTodo = (todoName) => {
+  return { id: Date.now(), name: todoName, complete: false };
+};
+
+const reducer = (todos, action) => {
+  switch (action.type) {
+    case ACTIONS.ADD_TODO:
+      return [...todos, newTodo(action.payload.name)];
+    case ACTIONS.TOGGLE_TODO:
+      return todos.map((todo) => {
+        if (todo.id === action.payload.id) {
+          return { ...todo, complete: !todo.complete };
+        }
+        return todo;
+      });
+    case ACTIONS.TOGGLE_DELETE:
+      return todos.filter((todo) => todo.id !== action.payload.id);
+    default:
+      return todos;
+  }
+};
+
+const Todo = ({ todo, dispatch }) => {
+  return (
+    <div>
+      <span style={{ color: todo.complete ? "#AAA" : "#000" }}>
+        {todo.name}
+      </span>
+      <button
+        onClick={() => {
+          dispatch({ type: ACTIONS.TOGGLE_TODO, payload: { id: todo.id } });
+        }}
+      >
+        Toggle
+      </button>
+      <button
+        onClick={() => {
+          dispatch({ type: ACTIONS.TOGGLE_DELETE, payload: { id: todo.id } });
+        }}
+      >
+        Delete
+      </button>
+    </div>
+  );
+};
+
+export default function App() {
+  const [name, setName] = useState("");
+  const [todos, dispatch] = useReducer(reducer, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch({ type: ACTIONS.ADD_TODO, payload: { name: name } });
+    setName("");
+  };
+
+  console.log(todos);
+  return (
+    <>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <button>Submit</button>
+      </form>
+      {todos.map((todo) => {
+        return <Todo key={todo.id} todo={todo} dispatch={dispatch} />;
+      })}
+    </>
+  );
+}
